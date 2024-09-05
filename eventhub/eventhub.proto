@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+option go_package = "github.com/villaleo/events/eventhub";
+import "google/protobuf/empty.proto";
+
+package eventhub.v1;
+
+// Represents an Event
+message Event {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string timestamp = 4;
+}
+
+// Request message for retrieving multiple events
+message ListEventsRequest {
+    int32 limit = 1;
+    int32 offset = 2;
+    string sort_by = 3; // e.g., "timestamp", "name"
+    bool ascending = 4; // true for ascending, false for descending
+}
+
+// Request message for finding events by query
+message FindEventsRequest {
+    string query = 1;
+    int32 limit = 2;
+    int32 offset = 3;
+}
+
+// Service for managing events
+service EventManager {
+    rpc NewEvent (Event) returns (google.protobuf.Empty);
+    rpc UpdateEvent (Event) returns (Event);
+    rpc DeleteEvent (Event) returns (google.protobuf.Empty);
+    rpc ListEvents (ListEventsRequest) returns (stream Event);
+    rpc FindEvents (FindEventsRequest) returns (stream Event);
+}
