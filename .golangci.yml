@@ -1,0 +1,22 @@
+linters-settings:
+  godox:
+    keywords:
+      - NOTE
+      - FIXME
+      - TODO
+  nlreturn:
+    block-size: 2
+
+linters:
+  disable-all: true
+  enable:
+    # Reports unchecked errors.
+    - errcheck
+    # Find repeated strings that could be replaced by a constant.
+    - goconst
+    # Detects FIXME, TODO, and other comment keywords.
+    - godox
+    # Accept interfaces, return concrete types.
+    - ireturn
+    # Checks for a new line before return and branch statements.
+    - nlreturn

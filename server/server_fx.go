@@ -27,7 +27,6 @@ type Server struct {
 
 func main() {
 	flag.Parse()
-	godotenv.Load()
 
 	app := fx.New(
 		fx.Provide(
@@ -36,6 +35,7 @@ func main() {
 			grpc.NewServer,
 		),
 		fx.Invoke(
+			godotenv.Load,
 			Register,
 			StartServer,
 			ConnectDatabase,
@@ -83,6 +83,7 @@ func StartServer(lc fx.Lifecycle, grpcSrv *grpc.Server, logger *zap.Logger) {
 		OnStop: func(_ context.Context) error {
 			grpcSrv.GracefulStop()
 			logger.Info("shutting down the server")
+
 			return nil
 		},
 	})

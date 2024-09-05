@@ -37,16 +37,16 @@ func ConnectDatabase(lc fx.Lifecycle, srv *Server, logger *zap.Logger) {
 				logger.Fatal("failed to ping mongo cluster", zap.Error(err))
 			}
 			srv.db = client
-
 			logger.Info("connected to mongo cluster")
+
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
 			if err := srv.db.Disconnect(ctx); err != nil {
 				logger.Fatal("failed to disconnect from cluster", zap.Error(err))
 			}
-
 			logger.Info("disconnecting from mongo cluster")
+
 			return nil
 		},
 	})
