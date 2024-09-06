@@ -11,6 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	// dbEvents is the name of the "events" database
+	dbEvents string = "events"
+	// dbcEventHub is the name of the "eventhub" collection
+	dbcEventHub string = "eventhub"
+)
+
 // ConnectDatabase creates a ready to use client connection to a MongoDB
 // cluster and stores it in srv.db
 func ConnectDatabase(lc fx.Lifecycle, srv *Server, logger *zap.Logger) {

@@ -30,7 +30,7 @@ message FindEventsRequest {
 
 // Service for managing events
 service EventManager {
-    rpc NewEvent (Event) returns (google.protobuf.Empty);
+    rpc NewEvent (Event) returns (Event);
     rpc UpdateEvent (Event) returns (Event);
     rpc DeleteEvent (Event) returns (google.protobuf.Empty);
     rpc ListEvents (ListEventsRequest) returns (stream Event);
