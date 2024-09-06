@@ -47,6 +47,22 @@ func Generate() error {
 	return nil
 }
 
+// Lint runs golangci-lint on the Go files in the root directory.
+func Lint() error {
+	fmt.Println("Running golangci-lint...")
+
+	// Check if `golangci-lint` is installed
+	if _, err := exec.LookPath("golangci-lint"); err != nil {
+		return fmt.Errorf("golanglint-ci is not installed. run mage install.")
+	}
+
+	out, _ := sh.OutCmd("golangci-lint", "run", "--config=.golangci.yml")()
+	fmt.Println(out)
+
+	fmt.Println("golangci-lint completed successfully.")
+	return nil
+}
+
 // installProtoc installs the Protocol Buffers compiler (protoc).
 func installProtoc() error {
 	fmt.Println("Checking if protoc is already installed...")
