@@ -13,21 +13,42 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-// Install installs all the dependencies required by the application.
+var Aliases = map[string]interface{}{
+	"i":   Install,
+	"gen": Generate,
+}
+
+// Install installs tools and dependencies required by the application.
+// If any tool is already installed, it will not be re-installed.
 func Install() error {
-	if err := InstallProtoc(); err != nil {
+	if err := installProtoc(); err != nil {
 		return err
 	}
-
-	if err := InstallGolangciLint(); err != nil {
+	if err := installGolangciLint(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// InstallProtoc installs the Protocol Buffers compiler (protoc).
-func InstallProtoc() error {
+// Generate generates the go protobuf files.
+func Generate() error {
+	fmt.Println("Generating protobuf files...")
+
+	cmd := `protoc --go_out=. --go_opt=paths=source_relative \
+			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+			eventhub/eventhub.proto`
+
+	if err := sh.Run("sh", "-c", cmd); err != nil {
+		return fmt.Errorf("failed to generate protobuf files: %w", err)
+	}
+
+	fmt.Println("Protobuf files generated successfully.")
+	return nil
+}
+
+// installProtoc installs the Protocol Buffers compiler (protoc).
+func installProtoc() error {
 	fmt.Println("Checking if protoc is already installed...")
 
 	// Check if `protoc` is already installed
@@ -41,11 +62,11 @@ func InstallProtoc() error {
 	var url string
 	switch runtime.GOOS {
 	case "darwin":
-		url = "https://github.com/protocolbuffers/protobuf/releases/download/v21.3/protoc-21.3-osx-x86_64.zip"
+		url = "https://github.com/protocolbuffers/protobuf/releases/download/v28.0/protoc-28.0-osx-universal_binary.zip"
 	case "linux":
-		url = "https://github.com/protocolbuffers/protobuf/releases/download/v21.3/protoc-21.3-linux-x86_64.zip"
+		url = "https://github.com/protocolbuffers/protobuf/releases/download/v28.0/protoc-28.0-linux-x86_64.zip"
 	case "windows":
-		url = "https://github.com/protocolbuffers/protobuf/releases/download/v21.3/protoc-21.3-win64.zip"
+		url = "https://github.com/protocolbuffers/protobuf/releases/download/v28.0/protobuf-28.0.zip"
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
@@ -74,24 +95,8 @@ func InstallProtoc() error {
 	return nil
 }
 
-// GenerateProtobuf generates the protobuf files.
-func GenerateProtobuf() error {
-	fmt.Println("Generating protobuf files...")
-
-	protoCommand := `protoc --go_out=. --go_opt=paths=source_relative \
-			--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-			eventhub/eventhub.proto`
-
-	if err := sh.Run("sh", "-c", protoCommand); err != nil {
-		return fmt.Errorf("failed to generate protobuf files: %w", err)
-	}
-
-	fmt.Println("Protobuf files generated successfully.")
-	return nil
-}
-
-// InstallGolangciLint installs the golangci-lint CLI tool.
-func InstallGolangciLint() error {
+// installGolangciLint installs the golangci-lint CLI tool.
+func installGolangciLint() error {
 	fmt.Println("Checking if golangci-lint is already installed...")
 
 	// Check if `golangci-lint` is already installed
@@ -105,11 +110,11 @@ func InstallGolangciLint() error {
 	var url string
 	switch runtime.GOOS {
 	case "darwin":
-		url = "https://github.com/golangci/golangci-lint/releases/download/v1.52.2/golangci-lint-1.52.2-darwin-amd64.tar.gz"
+		url = "https://github.com/golangci/golangci-lint/releases/download/v1.60.3/golangci-lint-1.60.3-darwin-amd64.tar.gz"
 	case "linux":
-		url = "https://github.com/golangci/golangci-lint/releases/download/v1.52.2/golangci-lint-1.52.2-linux-amd64.tar.gz"
+		url = "https://github.com/golangci/golangci-lint/releases/download/v1.60.3/golangci-lint-1.60.3-linux-amd64.tar.gz"
 	case "windows":
-		url = "https://github.com/golangci/golangci-lint/releases/download/v1.52.2/golangci-lint-1.52.2-windows-amd64.zip"
+		url = "https://github.com/golangci/golangci-lint/releases/download/v1.60.3/golangci-lint-1.60.3-windows-amd64.zip"
 	default:
 		return fmt.Errorf("unsupported OS: %s", runtime.GOOS)
 	}
@@ -133,18 +138,18 @@ func InstallGolangciLint() error {
 
 	// Move the binary to /usr/local/bin
 	if runtime.GOOS == "windows" {
-		if err := sh.Run("move", "./golangci-lint-1.52.2-windows-amd64/golangci-lint.exe", "/usr/local/bin/golangci-lint.exe"); err != nil {
+		if err := sh.Run("move", "./golangci-lint-1.60.3-windows-amd64/golangci-lint.exe", "/usr/local/bin/golangci-lint.exe"); err != nil {
 			return fmt.Errorf("failed to move golangci-lint binary: %w", err)
 		}
 	} else {
-		if err := sh.Run("sudo", "mv", "./golangci-lint-1.52.2-$(runtime.GOOS)-amd64/golangci-lint", "/usr/local/bin/golangci-lint"); err != nil {
+		if err := sh.Run("sudo", "mv", "./golangci-lint-1.60.3-$(runtime.GOOS)-amd64/golangci-lint", "/usr/local/bin/golangci-lint"); err != nil {
 			return fmt.Errorf("failed to move golangci-lint binary: %w", err)
 		}
 	}
 
 	// Clean up
 	os.Remove(tarFile)
-	os.RemoveAll("./golangci-lint-1.52.2-$(runtime.GOOS)-amd64")
+	os.RemoveAll("./golangci-lint-1.60.3-$(runtime.GOOS)-amd64")
 
 	fmt.Println("golangci-lint installed successfully.")
 	return nil
