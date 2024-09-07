@@ -60,7 +60,10 @@ func Lint() error {
 	}
 
 	out, _ := sh.OutCmd("golangci-lint", "run", "--config=.golangci.yml")()
-	fmt.Println(out)
+	if len(strings.Trim(out, " \n\r")) != 0 {
+		fmt.Println(out)
+		return fmt.Errorf("golangci-lint returned warnings")
+	}
 
 	fmt.Println("golangci-lint completed successfully.")
 	return nil
@@ -69,6 +72,10 @@ func Lint() error {
 type Server mg.Namespace
 
 func (Server) Start() error {
+	if err := Lint(); err != nil {
+		return err
+	}
+
 	// Prepare the environment variables
 	godotenv.Load()
 	env := map[string]string{

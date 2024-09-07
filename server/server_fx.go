@@ -25,16 +25,15 @@ type Server struct {
 }
 
 func main() {
-	flag.Parse()
-	godotenv.Load("../.env")
-
 	app := fx.New(
 		fx.Provide(
-			NewZapLogger,
 			NewServer,
 			grpc.NewServer,
+			zap.NewProduction,
 		),
 		fx.Invoke(
+			flag.Parse,
+			LoadEnvironment,
 			Register,
 			StartServer,
 			ConnectDatabase,
@@ -43,9 +42,11 @@ func main() {
 	app.Run()
 }
 
-// NewZapLogger initializes a Zap logger.
-func NewZapLogger() (*zap.Logger, error) {
-	return zap.NewProduction()
+// LoadEnvironment loads the environment variables into the application.
+func LoadEnvironment(logger *zap.Logger) {
+	if err := godotenv.Load(); err != nil {
+		logger.Fatal("failed to load environment", zap.Error(err))
+	}
 }
 
 // NewServer creates a new instance of Server.
