@@ -8,8 +8,11 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"slices"
 	"strings"
 
+	"github.com/joho/godotenv"
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -60,6 +63,35 @@ func Lint() error {
 	fmt.Println(out)
 
 	fmt.Println("golangci-lint completed successfully.")
+	return nil
+}
+
+type Server mg.Namespace
+
+func (Server) Start() error {
+	// Prepare the environment variables
+	godotenv.Load()
+	env := map[string]string{
+		"MONGO_USERNAME": os.Getenv("MONGO_USERNAME"),
+		"MONGO_PW":       os.Getenv("MONGO_PW"),
+		"MONGO_URL":      os.Getenv("MONGO_URL"),
+	}
+
+	// Get the all files in the server directory
+	srvf, _ := sh.OutCmd("ls", "server/")()
+	files := strings.FieldsFunc(srvf, func(r rune) bool { return r == '\n' })
+	for i, f := range files {
+		files[i] = "server/" + f
+	}
+
+	// Prepare the `go run` command with all the server files
+	args := slices.Concat([]string{"run"}, files)
+
+	_, err := sh.Exec(env, os.Stdout, os.Stdout, "go", args...)
+	if err != nil {
+		return fmt.Errorf("failed to start server: %w", err)
+	}
+
 	return nil
 }
 

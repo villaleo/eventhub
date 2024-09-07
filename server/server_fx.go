@@ -1,4 +1,3 @@
-// Package main implements a RouteGuide server.
 package main
 
 import (
@@ -27,6 +26,7 @@ type Server struct {
 
 func main() {
 	flag.Parse()
+	godotenv.Load("../.env")
 
 	app := fx.New(
 		fx.Provide(
@@ -35,7 +35,6 @@ func main() {
 			grpc.NewServer,
 		),
 		fx.Invoke(
-			godotenv.Load,
 			Register,
 			StartServer,
 			ConnectDatabase,
