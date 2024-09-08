@@ -17,10 +17,13 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-var Aliases = map[string]interface{}{
-	"i":   Install,
-	"gen": Generate,
-}
+var (
+	Aliases = map[string]interface{}{
+		"i":   Install,
+		"gen": Generate,
+	}
+	Default = Install
+)
 
 // Install installs tools and dependencies required by the application.
 // If any tool is already installed, it will not be re-installed.
