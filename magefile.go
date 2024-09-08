@@ -112,6 +112,37 @@ func (Server) Run() error {
 	return Server.Start(Server{}, 50051)
 }
 
+type Client mg.Namespace
+
+// Start starts the client, dialing with the addr provided.
+func (Client) Start(addr string) error {
+	if err := Lint(); err != nil {
+		return err
+	}
+
+	// Get the all files in the client directory
+	srvf, _ := sh.OutCmd("ls", "client/")()
+	files := strings.FieldsFunc(srvf, func(r rune) bool { return r == '\n' })
+	for i, f := range files {
+		files[i] = "client/" + f
+	}
+
+	// Prepare the `go run` command with all the client files and the addr
+	args := slices.Concat([]string{"run"}, files, []string{"-addr", addr})
+
+	_, err := sh.Exec(nil, os.Stdout, os.Stdout, "go", args...)
+	if err != nil {
+		return fmt.Errorf("failed to run client: %w", err)
+	}
+
+	return nil
+}
+
+// Run runs the client using the default addr localhost:50051.
+func (Client) Run() error {
+	return Client.Start(Client{}, "localhost:50051")
+}
+
 // installProtoc installs the Protocol Buffers compiler (protoc).
 func installProtoc() error {
 	fmt.Println("Checking if protoc is already installed...")
