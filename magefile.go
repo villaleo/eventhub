@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -52,7 +53,7 @@ func Generate() error {
 
 // Lint runs golangci-lint on the Go files in the root directory.
 func Lint() error {
-	fmt.Println("Running golangci-lint...")
+	fmt.Print("Running golangci-lint.. ")
 
 	// Check if `golangci-lint` is installed
 	if _, err := exec.LookPath("golangci-lint"); err != nil {
@@ -61,17 +62,18 @@ func Lint() error {
 
 	out, _ := sh.OutCmd("golangci-lint", "run", "--config=.golangci.yml")()
 	if len(strings.Trim(out, " \n\r")) != 0 {
-		fmt.Println(out)
+		fmt.Println("\n" + out)
 		return fmt.Errorf("golangci-lint returned warnings")
 	}
 
-	fmt.Println("golangci-lint completed successfully.")
+	fmt.Println("done! all checks passed.")
 	return nil
 }
 
 type Server mg.Namespace
 
-func (Server) Start() error {
+// Start starts the server at the port specified.
+func (Server) Start(port int) error {
 	if err := Lint(); err != nil {
 		return err
 	}
@@ -91,8 +93,8 @@ func (Server) Start() error {
 		files[i] = "server/" + f
 	}
 
-	// Prepare the `go run` command with all the server files
-	args := slices.Concat([]string{"run"}, files)
+	// Prepare the `go run` command with all the server files and port
+	args := slices.Concat([]string{"run"}, files, []string{"-port", strconv.Itoa(port)})
 
 	_, err := sh.Exec(env, os.Stdout, os.Stdout, "go", args...)
 	if err != nil {
@@ -100,6 +102,11 @@ func (Server) Start() error {
 	}
 
 	return nil
+}
+
+// Run runs the server at the default port 50051.
+func (Server) Run() error {
+	return Server.Start(Server{}, 50051)
 }
 
 // installProtoc installs the Protocol Buffers compiler (protoc).
